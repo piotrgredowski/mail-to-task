@@ -1,17 +1,48 @@
+import os
+
 from flask import Flask, request
 import requests
 
-app = Flask('mail_to_task')
+from lib.config import config, Config
+from lib.mailer import MailSender
 
 
-@app.route('/', methods=['POST'])
+class MyFlask(Flask):
+    cfg: Config = None
+    mailer: MailSender = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+app = MyFlask("mail_to_task")
+app.cfg = config
+app.mailer = MailSender(
+    address=app.cfg.secure.sender.address,
+    password=app.cfg.secure.sender.password,
+    server_address=app.cfg.secure.sender.server_address,
+    port=app.cfg.secure.sender.server_port,
+)
+
+
+@app.route("/", methods=["POST"])
 def main():
-    msg = request.json['plain'].strip()
+    target = request.args.get("target")
 
-    target = request.args['target']
-    requests.post(target, msg.encode('utf-8'))
-    return 'ok'
+    if not target:
+        return 400
+
+    receiver = app.cfg.secure.sender.trello.address
+
+    msg = request.json["plain"].strip()
+
+    requests.post(target, msg.encode("utf-8"))
+
+    app.mailer.send(to=receiver, msg=msg)
+    return "ok"
 
 
-if __name__ == '__main__':
-    app.run()
+is_debug = os.environ.get("ENVIRONMENT") == "dev"
+
+if __name__ == "__main__":
+    app.run(debug=is_debug)

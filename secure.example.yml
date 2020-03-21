@@ -1,0 +1,8 @@
+sender:
+  address: string@string.string
+  password: password
+  server_address: smtp.gmail.com
+  server_port: 587
+
+trello:
+  address: address@trello.com

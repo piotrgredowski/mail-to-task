@@ -1,36 +1,37 @@
-import smtplib, ssl
+import smtplib
+import ssl
+from ssl import SSLContext
 
 from lib.config import config
 
-port = 465  # For SSL
 
-# Create a secure SSL context
-context = ssl.create_default_context()
+class MailSender:
+    address: str
+    server_address: str
+    port: int
 
-smtp_server = "smtp.gmail.com"
-port = 587  # For starttls
-sender_email = config["mail"]["address"]
-password = config["mail"]["password"]
+    context: SSLContext
+    server: smtplib.SMTP
 
-message = """\
-Subject: Hi there
+    def __init__(self, *, address, password, server_address, port):
+        self.address = address
+        self.server_address = server_address
+        self.port = port
 
-This message is sent from Python."""
+        self.server = smtplib.SMTP(server_address, port)
+        self.context = ssl.create_default_context()
 
-# Create a secure SSL context
-context = ssl.create_default_context()
+        self.server.ehlo()
+        self.server.starttls(context=self.context)
+        self.server.ehlo()
 
-# Try to log in to server and send email
-try:
-    server = smtplib.SMTP(smtp_server, port)
-    server.ehlo()  # Can be omitted
-    server.starttls(context=context)  # Secure the connection
-    server.ehlo()  # Can be omitted
-    server.login(sender_email, password)
-    # TODO: Send email here
-    server.sendmail(sender_email, "piotrgredowski@gmail.com", message)
-except Exception as e:
-    # Print any error messages to stdout
-    print(e)
-finally:
-    server.quit()
+        self._server_login(address, password)
+
+    def _server_login(self, sender_email, password):
+        self.server.login(sender_email, password)
+
+    def send(self, *, to, msg):
+        self.server.sendmail(self.address, to, msg)
+
+    def stop(self):
+        self.server.quit()
