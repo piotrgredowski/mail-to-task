@@ -1,1 +1,1 @@
-web: gunicorn 'mail_to_task:app'
+web: ./lib/crypting.py decrypt && gunicorn 'mail_to_task:app'

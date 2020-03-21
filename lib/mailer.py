@@ -2,8 +2,6 @@ import smtplib
 import ssl
 from ssl import SSLContext
 
-from lib.config import config
-
 
 class MailSender:
     address: str

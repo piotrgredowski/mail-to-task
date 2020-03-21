@@ -32,13 +32,11 @@ def main():
     if not target:
         return 400
 
-    receiver = app.cfg.secure.sender.trello.address
+    receiver = app.cfg.secure.trello.address
 
     msg = request.json["plain"].strip()
 
-    requests.post(target, msg.encode("utf-8"))
-
-    app.mailer.send(to=receiver, msg=msg)
+    app.mailer.send(to=receiver, msg=msg.encode("utf-8"))
     return "ok"
 
 

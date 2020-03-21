@@ -13,8 +13,14 @@ class Sender:
 
 
 @dataclass
+class Receiver:
+    address: str
+
+
+@dataclass
 class SecureConfig:
     sender: Sender
+    trello: Receiver
 
 
 @dataclass
