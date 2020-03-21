@@ -36,7 +36,9 @@ def main():
 
     msg = request.json["plain"].strip()
 
-    app.mailer.send(to=receiver, msg=msg.encode("utf-8"))
+    app.mailer.send(
+        to=receiver, subject=request.json["headers"]["Subject"], msg=msg.encode("utf-8")
+    )
     return "ok"
 
 

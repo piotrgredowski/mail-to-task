@@ -3,6 +3,13 @@ import ssl
 from ssl import SSLContext
 
 
+MSG_TEMPLATE = """
+Subject: {subject}
+
+{content}
+"""
+
+
 class MailSender:
     address: str
     server_address: str
@@ -28,7 +35,8 @@ class MailSender:
     def _server_login(self, sender_email, password):
         self.server.login(sender_email, password)
 
-    def send(self, *, to, msg):
+    def send(self, *, to, subject, msg):
+        msg = MSG_TEMPLATE.format(subject=subject, content=msg)
         self.server.sendmail(self.address, to, msg)
 
     def stop(self):
