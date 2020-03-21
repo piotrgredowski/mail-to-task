@@ -2,6 +2,7 @@ import os
 
 from flask import Flask, request
 import requests
+from trello import TrelloApi
 
 from lib.config import config, Config
 from lib.mailer import MailSender
@@ -15,7 +16,8 @@ class MyFlask(Flask):
         super().__init__(*args, **kwargs)
 
 
-app = MyFlask("mail_to_task")
+app_name = "mail_to_task"
+app = MyFlask(app_name)
 app.cfg = config
 app.mailer = MailSender(
     address=app.cfg.secure.sender.address,
@@ -23,6 +25,10 @@ app.mailer = MailSender(
     server_address=app.cfg.secure.sender.server_address,
     port=app.cfg.secure.sender.server_port,
 )
+
+trello = TrelloApi(app.cfg.secure.trello.api_key)
+trello_token = os.environ.get("TRELLO_TOKEN")
+trello.set_token(trello_token)
 
 
 @app.route("/", methods=["POST"])
@@ -32,13 +38,9 @@ def main():
     if not target:
         return 400
 
-    receiver = app.cfg.secure.trello.address
-
+    raise Exception(request.json)
     msg = request.json["plain"].strip()
 
-    app.mailer.send(
-        to=receiver, subject=request.json["headers"]["Subject"], msg=msg.encode("utf-8")
-    )
     return "ok"
 
 

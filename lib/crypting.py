@@ -5,7 +5,7 @@ import sys
 
 from cryptography.fernet import Fernet
 
-key = os.environ.get("KEY")
+key = os.environ.get("CONFIGS_KEY")
 fernet = Fernet(key)
 
 CONFIG_NAMES = ["secure", "config"]
