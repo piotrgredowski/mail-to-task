@@ -129,3 +129,6 @@ dmypy.json
 
 ## Editor
 .vscode/
+
+## Secure
+secure.yml
