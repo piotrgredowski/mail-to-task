@@ -1,0 +1,1 @@
+web: gunicorn 'mail_to_task:app'
