@@ -134,4 +134,4 @@ dmypy.json
 secure.yml
 config.yml
 
-example_mail.py
+example_*.py

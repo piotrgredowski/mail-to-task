@@ -48,6 +48,8 @@ class TrelloHandlerOptionDueDate:
 
 @dataclass
 class TrelloHandlerOptions:
+    board: str
+    list_name: str
     labels: typing.List[str]
     assignee: str
     due_date: TrelloHandlerOptionDueDate
@@ -69,6 +71,7 @@ class Task:
 @dataclass
 class Config:
     secure: SecureConfig
+    tasks: typing.List[Task]
 
 
 def parse_yaml(path: str) -> dict:
@@ -82,5 +85,5 @@ secure_raw = parse_yaml("secure.yml")
 config_raw = parse_yaml("config.yml")
 config_raw.update({"secure": secure_raw})
 
-
 config: Config = dataclass_from_dict(data_class=Config, data=config_raw)
+config.tasks[0].handler.options.assignee

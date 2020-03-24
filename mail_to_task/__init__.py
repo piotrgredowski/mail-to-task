@@ -1,63 +1,59 @@
 import os
 import ssl
+from datetime import timedelta
+from time import sleep
 
-from flask import Flask, request
-import requests
 from trello import TrelloApi
 
-from lib.config import config, Config
-from lib.mailer import MailSender, MailReceiver
+from lib.config import config
+from lib.mailer import MailReceiver, MailSender
 
-
-class MyFlask(Flask):
-    cfg: Config = None
-    mailer: MailSender = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-
-app_name = "mail_to_task"
-app = MyFlask(app_name)
-app.cfg = config
-
-context = ssl.create_default_context()
-app.mailer = MailSender(
-    address=app.cfg.secure.sender.address,
-    password=app.cfg.secure.sender.password,
-    server_address=app.cfg.secure.sender.server_address,
-    port=app.cfg.secure.sender.server_port,
-    context=context,
-)
-
-receiver = MailReceiver(
-    address=app.cfg.secure.sender.address,
-    password=app.cfg.secure.sender.password,
-    server_address=app.cfg.secure.sender.server_address,
-)
-
-a = receiver._get_unseen()
-breakpoint()
-
-trello = TrelloApi(app.cfg.secure.trello.api_key)
+trello = TrelloApi(config.secure.trello.api_key)
 trello_token = os.environ.get("TRELLO_TOKEN")
 trello.set_token(trello_token)
 
+ssl_context = ssl.create_default_context()
 
-@app.route("/", methods=["POST"])
-def main():
-    target = request.args.get("target")
+mailer = MailSender(
+    address=config.secure.sender.address,
+    password=config.secure.sender.password,
+    server_address=config.secure.sender.server_address,
+    port=config.secure.sender.server_port,
+    ssl_context=ssl_context,
+)
+receiver = MailReceiver(
+    address=config.secure.sender.address,
+    password=config.secure.sender.password,
+    server_address=config.secure.sender.server_address,
+    ssl_context=ssl_context,
+)
 
-    if not target:
-        return 400
+while True:
+    print("Alive")
+    mails = receiver.get_not_seen_messages(mark_as_seen=True)
+    from pprint import pprint
 
-    raise Exception(request.json)
-    msg = request.json["plain"].strip()
+    pprint(mails)
+    member_name = config.tasks[0].handler.options.assignee
+    board_name = config.tasks[0].handler.options.board
+    list_name = config.tasks[0].handler.options.list_name
 
-    return "ok"
+    boards = trello.members.get_board(member_name)
+    the_board = list(filter(lambda b: b["name"] == board_name, boards))[0]
+    the_board_id = the_board["id"]
 
+    lists = trello.boards.get_list(the_board_id)
+    try:
+        the_list_id = list(filter(lambda l: l["name"] == list_name, lists))[0]["id"]
+    except IndexError:
+        the_list_id = trello.boards.new_list(the_board_id, list_name)["id"]
 
-is_debug = os.environ.get("ENVIRONMENT") == "dev"
+    for mail in mails:
+        trello.cards.new(
+            name=mail.subject,
+            idList=the_list_id,
+            due=mail.date + timedelta(days=7),
+            desc=mail.body,
+        )
 
-if __name__ == "__main__":
-    app.run(debug=is_debug)
+    sleep(5)
