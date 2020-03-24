@@ -1,11 +1,12 @@
 import os
+import ssl
 
 from flask import Flask, request
 import requests
 from trello import TrelloApi
 
 from lib.config import config, Config
-from lib.mailer import MailSender
+from lib.mailer import MailSender, MailReceiver
 
 
 class MyFlask(Flask):
@@ -19,12 +20,24 @@ class MyFlask(Flask):
 app_name = "mail_to_task"
 app = MyFlask(app_name)
 app.cfg = config
+
+context = ssl.create_default_context()
 app.mailer = MailSender(
     address=app.cfg.secure.sender.address,
     password=app.cfg.secure.sender.password,
     server_address=app.cfg.secure.sender.server_address,
     port=app.cfg.secure.sender.server_port,
+    context=context,
 )
+
+receiver = MailReceiver(
+    address=app.cfg.secure.sender.address,
+    password=app.cfg.secure.sender.password,
+    server_address=app.cfg.secure.sender.server_address,
+)
+
+a = receiver._get_unseen()
+breakpoint()
 
 trello = TrelloApi(app.cfg.secure.trello.api_key)
 trello_token = os.environ.get("TRELLO_TOKEN")
