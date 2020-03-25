@@ -1,8 +1,11 @@
+import asyncio
 import os
 import ssl
 from datetime import timedelta
 from time import sleep
 
+import requests
+from flask import Flask
 from trello import TrelloApi
 
 from lib.config import config
@@ -28,12 +31,10 @@ receiver = MailReceiver(
     ssl_context=ssl_context,
 )
 
-while True:
-    print("Alive")
-    mails = receiver.get_not_seen_messages(mark_as_seen=True)
-    from pprint import pprint
 
-    pprint(mails)
+def scan_inbox():
+    mails = receiver.get_not_seen_messages(mark_as_seen=True)
+
     member_name = config.tasks[0].handler.options.assignee
     board_name = config.tasks[0].handler.options.board
     list_name = config.tasks[0].handler.options.list_name
@@ -56,4 +57,26 @@ while True:
             desc=mail.body,
         )
 
-    sleep(5)
+
+async def scan():
+    await asyncio.sleep(5)
+    print("Alive")
+    scan_inbox()
+
+
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+loop.run_until_complete(scan())
+
+app = Flask("keep_me_alive")
+
+
+@app.route("/", methods=["GET"])
+def keep_me_alive():
+    return "ok"
+
+
+is_debug = os.environ.get("ENVIRONMENT") == "dev"
+
+if __name__ == "__main__":
+    app.run(debug=is_debug)
