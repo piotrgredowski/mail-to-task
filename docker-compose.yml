@@ -1,0 +1,36 @@
+version: "3"
+
+services:
+  redis:
+    hostname: redis
+    image: redis:alpine
+    ports:
+      - 6379:6379
+
+  mail_to_task:
+    env_file: .env
+    image: mail_to_task__image
+    build:
+      context: .
+      dockerfile: Dockerfile
+    hostname: mail_to_task
+    ports:
+      - 8191:8191
+    volumes:
+      - "./:/app/:rw"
+    links:
+      - redis
+    depends_on:
+      - redis
+
+  worker:
+    image: mail_to_task__image
+    hostname: worker
+    command: rq worker --url redis://redis:6379
+
+    depends_on:
+      - redis
+      - mail_to_task
+    links:
+      - redis
+      - mail_to_task

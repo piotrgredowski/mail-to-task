@@ -1,13 +1,15 @@
 import asyncio
 import os
 import ssl
-from datetime import timedelta
+from datetime import datetime, timedelta
 from time import sleep
 
 import requests
 from flask import Flask
+from rq_scheduler import Scheduler
 from trello import TrelloApi
 
+from jobs_queue import queue, redis_conn
 from lib.config import config
 from lib.mailer import MailReceiver, MailSender
 
@@ -58,15 +60,23 @@ def scan_inbox():
         )
 
 
-async def scan():
-    await asyncio.sleep(5)
-    print("Alive")
-    scan_inbox()
+def ping_me():
+    print("ping")
+    requests.get(os.environ.get("APP_ADDRESS"))
 
 
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
-loop.run_until_complete(scan())
+scheduler = Scheduler(connection=redis_conn)
+# scheduler = Scheduler(queue=queue)
+scheduler.schedule(
+    scheduled_time=datetime.utcnow() + timedelta(5),
+    func=ping_me,
+    interval=60,
+    repeat=None,
+)
+scheduler.schedule(
+    scheduled_time=datetime.utcnow(), func=scan_inbox, interval=5, repeat=None,
+)
+# breakpoint()
 
 app = Flask("keep_me_alive")
 
