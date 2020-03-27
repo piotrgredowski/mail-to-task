@@ -26,7 +26,10 @@ services:
   worker:
     image: mail_to_task__image
     hostname: worker
-    command: rq worker --url redis://redis:6379
+    command: python worker.py
+    env_file: .env
+    volumes:
+      - "./:/app/:rw"
 
     depends_on:
       - redis
@@ -34,3 +37,20 @@ services:
     links:
       - redis
       - mail_to_task
+
+  scheduler:
+    image: mail_to_task__image
+    hostname: scheduler
+    command: rqscheduler --url ${REDIS_URL} --db 0 -i 5
+    env_file: .env
+    volumes:
+      - "./:/app/:rw"
+
+    depends_on:
+      - redis
+      - mail_to_task
+      - worker
+    links:
+      - redis
+      - mail_to_task
+      - worker

@@ -1,6 +1,6 @@
 # mail-to-task
 
-Use Python 3.8.1.
+Use Python 3.8.2.
 
 Create `.env` file containing:
 ```

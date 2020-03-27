@@ -4,14 +4,18 @@ from time import sleep
 import requests
 
 
-def ping_me():
+def ping_me(address):
     sleep(60)
     print("ping")
-    requests.get(os.environ.get("APP_ADDRESS"))
+    from datetime import datetime
+
+    print(datetime.utcnow())
+
+    # requests.get(address)
 
 
-is_debug = os.environ.get("ENVIRONMENT") == "dev"
+# is_debug = os.environ.get("ENVIRONMENT") == "dev"
 
-if not is_debug:
-    while True:
-        ping_me()
+# if not is_debug:
+#     while True:
+#         ping_me()

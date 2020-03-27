@@ -1,5 +1,8 @@
-from rq import Queue
-from redis import Redis
+import os
 
-redis_conn = Redis(host="redis", port=6379)
-queue = Queue(connection=redis_conn)
+from rq import Queue
+import redis
+
+from worker import conn
+
+queue = Queue(connection=conn)
