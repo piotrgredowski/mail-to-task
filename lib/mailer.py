@@ -72,10 +72,11 @@ class MailReceiver:
     server_address: str
     port: int
 
-    context: SSLContext
+    # context: SSLContext
     server: Imbox
 
-    def __init__(self, *, address, password, server_address, ssl_context):
+    def __init__(self, *, address, password, server_address):
+        # def __init__(self, *, address, password, server_address, ssl_context):
         self.address = address
         self.server_address = server_address
         # self.port = port
@@ -84,7 +85,7 @@ class MailReceiver:
             username=address,
             password=password,
             ssl=True,
-            ssl_context=ssl_context,
+            # ssl_context=ssl_context,
         )
 
     def _add_label(self, flag: FLAGS):
