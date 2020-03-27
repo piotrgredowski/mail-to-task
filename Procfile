@@ -1,1 +1,1 @@
-web: ./lib/crypting.py decrypt && python -m ping_me & gunicorn 'mail_to_task:app'
+web: ./lib/crypting.py decrypt && docker-compose up
