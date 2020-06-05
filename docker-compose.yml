@@ -41,7 +41,7 @@ services:
   scheduler:
     image: mail_to_task__image
     hostname: scheduler
-    command: rqscheduler --url ${REDIS_URL} --db 0 -i 5
+    command: rqscheduler --url ${REDISTOGO_URL} --db 0 -i 5
     env_file: .env
     volumes:
       - "./:/app/:rw"

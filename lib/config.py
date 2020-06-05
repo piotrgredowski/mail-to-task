@@ -2,52 +2,45 @@ from dataclasses import dataclass
 import typing
 
 from ruamel.yaml import YAML
+from pydantic import BaseModel
 
-from dacite import from_dict as dataclass_from_dict
 
 yaml = YAML(typ="safe")
 
 
-@dataclass
-class Sender:
+class Sender(BaseModel):
     address: str
     password: str
     server_address: str
     server_port: int
 
 
-@dataclass
-class Receiver:
+class Receiver(BaseModel):
     address: str
 
 
-@dataclass
 class Trello(Receiver):
     api_key: str
     api_secret: str
 
 
-@dataclass
-class SecureConfig:
+class SecureConfig(BaseModel):
     sender: Sender
     trello: Trello
 
 
-@dataclass
-class TaskRequired:
+class TaskRequired(BaseModel):
     received_from: str
 
 
-@dataclass
-class TrelloHandlerOptionDueDate:
+class TrelloHandlerOptionDueDate(BaseModel):
     month: int
     day_of_month: int
     hour: int
     minute: int
 
 
-@dataclass
-class TrelloHandlerOptions:
+class TrelloHandlerOptions(BaseModel):
     board: str
     list_name: str
     labels: typing.List[str]
@@ -55,21 +48,18 @@ class TrelloHandlerOptions:
     due_date: TrelloHandlerOptionDueDate
 
 
-@dataclass
-class Handler:
+class Handler(BaseModel):
     name: str
     options: typing.Union[TrelloHandlerOptions]
 
 
-@dataclass
-class Task:
+class Task(BaseModel):
     name: str
     required: TaskRequired
     handler: Handler
 
 
-@dataclass
-class Config:
+class Config(BaseModel):
     secure: SecureConfig
     tasks: typing.List[Task]
 
@@ -85,5 +75,4 @@ secure_raw = parse_yaml("secure.yml")
 config_raw = parse_yaml("config.yml")
 config_raw.update({"secure": secure_raw})
 
-config: Config = dataclass_from_dict(data_class=Config, data=config_raw)
-config.tasks[0].handler.options.assignee
+config = Config(**config_raw)
